@@ -2,9 +2,7 @@
   description = "elpy emacs package";
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
-    # The following is only here since in the current version of
-    # nixpkgs the cask command is broken
-    nixpkgs.url = "github:seppeljordan/nixpkgs/fix-cask";
+    nixpkgs.url = "github:NixOS/nixpkgs";
   };
 
   outputs = { self, nixpkgs, flake-utils }:
