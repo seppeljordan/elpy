@@ -24,6 +24,8 @@
               pip
               setuptools
               twine
+              types-toml
+              types-setuptools
               virtualenv
               wheel
               yapf

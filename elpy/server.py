@@ -12,7 +12,7 @@ import pydoc
 from elpy.auto_pep8 import fix_code
 from elpy.blackutil import fix_code as fix_code_with_black
 from elpy.pydocutils import get_pydoc_completions
-from elpy.rpc import Fault, JSONRPCServer
+from elpy.rpc import JSONRPCServer
 from elpy.yapfutil import fix_code as fix_code_with_yapf
 
 try:
@@ -249,7 +249,7 @@ def get_source(fileobj):
             if fileobj.get("delete_after_use"):
                 try:
                     os.remove(fileobj["filename"])
-                except:  # pragma: no cover
+                except Exception:  # pragma: no cover
                     pass
 
 
