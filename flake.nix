@@ -11,8 +11,22 @@
         let pkgs = import nixpkgs { inherit system; };
         in {
           devShell = pkgs.mkShell {
-            buildInputs = (with pkgs.python3.pkgs; [ virtualenv ])
-              ++ (with pkgs; [ cask nixfmt ]);
+            buildInputs = (with pkgs.python3.pkgs; [
+              autopep8
+              black
+              coverage
+              flake8
+              isort
+              jedi
+              mock
+              nose
+              pip
+              setuptools
+              twine
+              virtualenv
+              wheel
+              yapf
+            ]) ++ (with pkgs; [ cask nixfmt ]);
           };
         });
     in systemDependent;

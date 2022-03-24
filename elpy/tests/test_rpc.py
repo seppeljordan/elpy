@@ -1,8 +1,8 @@
 """Tests for elpy.rpc."""
 
 import json
-import unittest
 import sys
+import unittest
 
 from elpy import rpc
 from elpy.tests.compat import StringIO
@@ -58,78 +58,68 @@ class TestInit(TestJSONRPCServer):
 
 class TestReadJson(TestJSONRPCServer):
     def test_should_read_json(self):
-        objlist = [{'foo': 'bar'},
-                   {'baz': 'qux', 'fnord': 'argl\nbargl'},
-                   "beep\r\nbeep\r\nbeep"]
-        self.write("".join([(json.dumps(obj) + "\n")
-                            for obj in objlist]))
+        objlist = [
+            {"foo": "bar"},
+            {"baz": "qux", "fnord": "argl\nbargl"},
+            "beep\r\nbeep\r\nbeep",
+        ]
+        self.write("".join([(json.dumps(obj) + "\n") for obj in objlist]))
         for obj in objlist:
-            self.assertEqual(self.rpc.read_json(),
-                             obj)
+            self.assertEqual(self.rpc.read_json(), obj)
 
     def test_should_raise_eof_on_eof(self):
         self.assertRaises(EOFError, self.rpc.read_json)
 
     def test_should_fail_on_malformed_json(self):
         self.write("malformed json\n")
-        self.assertRaises(ValueError,
-                          self.rpc.read_json)
+        self.assertRaises(ValueError, self.rpc.read_json)
 
 
 class TestWriteJson(TestJSONRPCServer):
     def test_should_write_json_line(self):
-        objlist = [{'foo': 'bar'},
-                   {'baz': 'qux', 'fnord': 'argl\nbargl'},
-                   ]
+        objlist = [
+            {"foo": "bar"},
+            {"baz": "qux", "fnord": "argl\nbargl"},
+        ]
         for obj in objlist:
             self.rpc.write_json(**obj)
-            self.assertEqual(json.loads(self.read()),
-                             obj)
+            self.assertEqual(json.loads(self.read()), obj)
 
 
 class TestHandleRequest(TestJSONRPCServer):
     def test_should_fail_if_json_does_not_contain_a_method(self):
-        self.write(json.dumps(dict(params=[],
-                                   id=23)))
-        self.assertRaises(ValueError,
-                          self.rpc.handle_request)
+        self.write(json.dumps(dict(params=[], id=23)))
+        self.assertRaises(ValueError, self.rpc.handle_request)
 
     def test_should_call_right_method(self):
-        self.write(json.dumps(dict(method='foo',
-                                   params=[1, 2, 3],
-                                   id=23)))
+        self.write(json.dumps(dict(method="foo", params=[1, 2, 3], id=23)))
         self.rpc.rpc_foo = lambda *params: params
         self.rpc.handle_request()
-        self.assertEqual(json.loads(self.read()),
-                         dict(id=23,
-                              result=[1, 2, 3]))
+        self.assertEqual(json.loads(self.read()), dict(id=23, result=[1, 2, 3]))
 
     def test_should_pass_defaults_for_missing_parameters(self):
         def test_method(*params):
             self.args = params
 
-        self.write(json.dumps(dict(method='foo')))
+        self.write(json.dumps(dict(method="foo")))
         self.rpc.rpc_foo = test_method
         self.rpc.handle_request()
         self.assertEqual(self.args, ())
         self.assertEqual(self.read(), "")
 
     def test_should_return_error_for_missing_method(self):
-        self.write(json.dumps(dict(method='foo',
-                                   id=23)))
+        self.write(json.dumps(dict(method="foo", id=23)))
         self.rpc.handle_request()
         result = json.loads(self.read())
 
         self.assertEqual(result["id"], 23)
-        self.assertEqual(result["error"]["message"],
-                         "Unknown method foo")
+        self.assertEqual(result["error"]["message"], "Unknown method foo")
 
     def test_should_return_error_for_exception_in_method(self):
         def test_method():
             raise ValueError("An error was raised")
 
-        self.write(json.dumps(dict(method='foo',
-                                   id=23)))
+        self.write(json.dumps(dict(method="foo", id=23)))
         self.rpc.rpc_foo = test_method
 
         self.rpc.handle_request()
@@ -143,8 +133,7 @@ class TestHandleRequest(TestJSONRPCServer):
         def test_method():
             raise rpc.Fault("This is a fault")
 
-        self.write(json.dumps(dict(method="foo",
-                                   id=23)))
+        self.write(json.dumps(dict(method="foo", id=23)))
         self.rpc.rpc_foo = test_method
 
         self.rpc.handle_request()
@@ -156,8 +145,7 @@ class TestHandleRequest(TestJSONRPCServer):
 
     def test_should_add_data_for_faults(self):
         def test_method():
-            raise rpc.Fault("St. Andreas' Fault",
-                            code=12345, data="Yippieh")
+            raise rpc.Fault("St. Andreas' Fault", code=12345, data="Yippieh")
 
         self.write(json.dumps(dict(method="foo", id=23)))
         self.rpc.rpc_foo = test_method
@@ -170,13 +158,11 @@ class TestHandleRequest(TestJSONRPCServer):
     def test_should_call_handle_for_unknown_method(self):
         def test_handle(method_name, args):
             return "It works"
-        self.write(json.dumps(dict(method="doesnotexist",
-                                   id=23)))
+
+        self.write(json.dumps(dict(method="doesnotexist", id=23)))
         self.rpc.handle = test_handle
         self.rpc.handle_request()
-        self.assertEqual(json.loads(self.read()),
-                         dict(id=23,
-                              result="It works"))
+        self.assertEqual(json.loads(self.read()), dict(id=23, result="It works"))
 
 
 class TestServeForever(TestJSONRPCServer):
@@ -205,5 +191,4 @@ class TestServeForever(TestJSONRPCServer):
 
     def test_should_fail_on_most_errors(self):
         self.error = RuntimeError
-        self.assertRaises(RuntimeError,
-                          self.rpc.serve_forever)
+        self.assertRaises(RuntimeError, self.rpc.serve_forever)

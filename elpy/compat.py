@@ -7,7 +7,6 @@ in one place.
 
 import sys
 
-
 if sys.version_info >= (3, 0):
     PYTHON3 = True
 
@@ -15,6 +14,7 @@ if sys.version_info >= (3, 0):
 
     def ensure_not_unicode(obj):
         return obj
+
 else:
     PYTHON3 = False
 

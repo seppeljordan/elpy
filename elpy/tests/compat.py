@@ -7,7 +7,6 @@ in one place.
 
 import sys
 
-
 if sys.version_info >= (3, 0):
     PYTHON3 = True
     import builtins

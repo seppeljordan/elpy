@@ -9,12 +9,11 @@ import io
 import os
 import pydoc
 
-from elpy.pydocutils import get_pydoc_completions
-from elpy.rpc import JSONRPCServer, Fault
 from elpy.auto_pep8 import fix_code
-from elpy.yapfutil import fix_code as fix_code_with_yapf
 from elpy.blackutil import fix_code as fix_code_with_black
-
+from elpy.pydocutils import get_pydoc_completions
+from elpy.rpc import Fault, JSONRPCServer
+from elpy.yapfutil import fix_code as fix_code_with_yapf
 
 try:
     from elpy import jedibackend
@@ -28,6 +27,7 @@ class ElpyRPCServer(JSONRPCServer):
     See the rpc_* methods for exported method documentation.
 
     """
+
     def __init__(self, *args, **kwargs):
         super(ElpyRPCServer, self).__init__(*args, **kwargs)
         self.backend = None
@@ -61,50 +61,43 @@ class ElpyRPCServer(JSONRPCServer):
         else:
             self.backend = None
 
-        return {
-            'jedi_available': (self.backend is not None)
-        }
+        return {"jedi_available": (self.backend is not None)}
 
     def rpc_get_calltip(self, filename, source, offset):
-        """Get the calltip for the function at the offset.
-
-        """
-        return self._call_backend("rpc_get_calltip", None, filename,
-                                  get_source(source), offset)
+        """Get the calltip for the function at the offset."""
+        return self._call_backend(
+            "rpc_get_calltip", None, filename, get_source(source), offset
+        )
 
     def rpc_get_oneline_docstring(self, filename, source, offset):
-        """Get a oneline docstring for the symbol at the offset.
-
-        """
-        return self._call_backend("rpc_get_oneline_docstring", None, filename,
-                                  get_source(source), offset)
+        """Get a oneline docstring for the symbol at the offset."""
+        return self._call_backend(
+            "rpc_get_oneline_docstring", None, filename, get_source(source), offset
+        )
 
     def rpc_get_calltip_or_oneline_docstring(self, filename, source, offset):
-        """Get a calltip or a oneline docstring for the symbol at the offset.
-
-        """
-        return self._call_backend("rpc_get_calltip_or_oneline_docstring",
-                                  None, filename,
-                                  get_source(source), offset)
+        """Get a calltip or a oneline docstring for the symbol at the offset."""
+        return self._call_backend(
+            "rpc_get_calltip_or_oneline_docstring",
+            None,
+            filename,
+            get_source(source),
+            offset,
+        )
 
     def rpc_get_completions(self, filename, source, offset):
-        """Get a list of completion candidates for the symbol at offset.
-
-        """
-        results = self._call_backend("rpc_get_completions", [], filename,
-                                     get_source(source), offset)
+        """Get a list of completion candidates for the symbol at offset."""
+        results = self._call_backend(
+            "rpc_get_completions", [], filename, get_source(source), offset
+        )
         # Uniquify by name
-        results = list(dict((res['name'], res) for res in results)
-                       .values())
+        results = list(dict((res["name"], res) for res in results).values())
         results.sort(key=lambda cand: _pysymbol_key(cand["name"]))
         return results
 
     def rpc_get_completion_docstring(self, completion):
-        """Return documentation for a previously returned completion.
-
-        """
-        return self._call_backend("rpc_get_completion_docstring",
-                                  None, completion)
+        """Return documentation for a previously returned completion."""
+        return self._call_backend("rpc_get_completion_docstring", None, completion)
 
     def rpc_get_completion_location(self, completion):
         """Return the location for a previously returned completion.
@@ -112,29 +105,25 @@ class ElpyRPCServer(JSONRPCServer):
         This returns a list of [file name, line number].
 
         """
-        return self._call_backend("rpc_get_completion_location", None,
-                                  completion)
+        return self._call_backend("rpc_get_completion_location", None, completion)
 
     def rpc_get_definition(self, filename, source, offset):
-        """Get the location of the definition for the symbol at the offset.
-
-        """
-        return self._call_backend("rpc_get_definition", None, filename,
-                                  get_source(source), offset)
+        """Get the location of the definition for the symbol at the offset."""
+        return self._call_backend(
+            "rpc_get_definition", None, filename, get_source(source), offset
+        )
 
     def rpc_get_assignment(self, filename, source, offset):
-        """Get the location of the assignment for the symbol at the offset.
-
-        """
-        return self._call_backend("rpc_get_assignment", None, filename,
-                                  get_source(source), offset)
+        """Get the location of the assignment for the symbol at the offset."""
+        return self._call_backend(
+            "rpc_get_assignment", None, filename, get_source(source), offset
+        )
 
     def rpc_get_docstring(self, filename, source, offset):
-        """Get the docstring for the symbol at the offset.
-
-        """
-        return self._call_backend("rpc_get_docstring", None, filename,
-                                  get_source(source), offset)
+        """Get the docstring for the symbol at the offset."""
+        return self._call_backend(
+            "rpc_get_docstring", None, filename, get_source(source), offset
+        )
 
     def rpc_get_pydoc_completions(self, name=None):
         """Return a list of possible strings to pass to pydoc.
@@ -153,9 +142,9 @@ class ElpyRPCServer(JSONRPCServer):
 
         """
         try:
-            docstring = pydoc.render_doc(str(symbol),
-                                         "Elpy Pydoc Documentation for %s",
-                                         False)
+            docstring = pydoc.render_doc(
+                str(symbol), "Elpy Pydoc Documentation for %s", False
+            )
         except (ImportError, pydoc.ErrorDuringImport):
             return None
         else:
@@ -164,78 +153,77 @@ class ElpyRPCServer(JSONRPCServer):
             return docstring
 
     def rpc_get_usages(self, filename, source, offset):
-        """Get usages for the symbol at point.
-
-        """
+        """Get usages for the symbol at point."""
         source = get_source(source)
 
-        return self._call_backend("rpc_get_usages",
-                                  None, filename, source, offset)
+        return self._call_backend("rpc_get_usages", None, filename, source, offset)
 
     def rpc_get_names(self, filename, source, offset):
-        """Get all possible names
-
-        """
+        """Get all possible names"""
         source = get_source(source)
-        return self._call_backend("rpc_get_names",
-                                  None, filename, source, offset)
+        return self._call_backend("rpc_get_names", None, filename, source, offset)
 
     def rpc_get_rename_diff(self, filename, source, offset, new_name):
-        """Get the diff resulting from renaming the thing at point
-
-        """
+        """Get the diff resulting from renaming the thing at point"""
         source = get_source(source)
 
-        return self._call_backend("rpc_get_rename_diff",
-                                  None, filename, source, offset, new_name)
+        return self._call_backend(
+            "rpc_get_rename_diff", None, filename, source, offset, new_name
+        )
 
-    def rpc_get_extract_variable_diff(self, filename, source, offset, new_name,
-                                      line_beg, line_end, col_beg, col_end):
-        """Get the diff resulting from extracting the selected code
-
-        """
+    def rpc_get_extract_variable_diff(
+        self, filename, source, offset, new_name, line_beg, line_end, col_beg, col_end
+    ):
+        """Get the diff resulting from extracting the selected code"""
         source = get_source(source)
-        return self._call_backend("rpc_get_extract_variable_diff",
-                                  None, filename, source, offset,
-                                  new_name, line_beg, line_end, col_beg,
-                                  col_end)
+        return self._call_backend(
+            "rpc_get_extract_variable_diff",
+            None,
+            filename,
+            source,
+            offset,
+            new_name,
+            line_beg,
+            line_end,
+            col_beg,
+            col_end,
+        )
 
-    def rpc_get_extract_function_diff(self, filename, source, offset, new_name,
-                                      line_beg, line_end, col_beg, col_end):
-        """Get the diff resulting from extracting the selected code
-
-        """
+    def rpc_get_extract_function_diff(
+        self, filename, source, offset, new_name, line_beg, line_end, col_beg, col_end
+    ):
+        """Get the diff resulting from extracting the selected code"""
         source = get_source(source)
-        return self._call_backend("rpc_get_extract_function_diff",
-                                  None, filename, source, offset, new_name,
-                                  line_beg, line_end, col_beg, col_end)
+        return self._call_backend(
+            "rpc_get_extract_function_diff",
+            None,
+            filename,
+            source,
+            offset,
+            new_name,
+            line_beg,
+            line_end,
+            col_beg,
+            col_end,
+        )
 
     def rpc_get_inline_diff(self, filename, source, offset):
-        """Get the diff resulting from inlining the thing at point.
-
-        """
+        """Get the diff resulting from inlining the thing at point."""
         source = get_source(source)
-        return self._call_backend("rpc_get_inline_diff",
-                                  None, filename, source, offset)
+        return self._call_backend("rpc_get_inline_diff", None, filename, source, offset)
 
     def rpc_fix_code(self, source, directory):
-        """Formats Python code to conform to the PEP 8 style guide.
-
-        """
+        """Formats Python code to conform to the PEP 8 style guide."""
         source = get_source(source)
         return fix_code(source, directory)
 
     def rpc_fix_code_with_yapf(self, source, directory):
-        """Formats Python code to conform to the PEP 8 style guide.
-
-        """
+        """Formats Python code to conform to the PEP 8 style guide."""
         source = get_source(source)
         return fix_code_with_yapf(source, directory)
 
     def rpc_fix_code_with_black(self, source, directory):
-        """Formats Python code to conform to the PEP 8 style guide.
-
-        """
+        """Formats Python code to conform to the PEP 8 style guide."""
         source = get_source(source)
         return fix_code_with_black(source, directory)
 
@@ -255,11 +243,10 @@ def get_source(fileobj):
         return fileobj
     else:
         try:
-            with io.open(fileobj["filename"], encoding="utf-8",
-                         errors="ignore") as f:
+            with io.open(fileobj["filename"], encoding="utf-8", errors="ignore") as f:
                 return f.read()
         finally:
-            if fileobj.get('delete_after_use'):
+            if fileobj.get("delete_after_use"):
                 try:
                     os.remove(fileobj["filename"])
                 except:  # pragma: no cover

@@ -5,15 +5,21 @@
 import sys
 
 from elpy.rpc import Fault
+
 # in case pkg_resources is not properly installed
 # (see https://github.com/jorgenschaefer/elpy/issues/1674).
 try:
     from pkg_resources import parse_version
 except ImportError:  # pragma: no cover
+
     def parse_version(*arg, **kwargs):
-        raise Fault("`pkg_resources` could not be imported, "
-                    "please reinstall Elpy RPC virtualenv with"
-                    " `M-x elpy-rpc-reinstall-virtualenv`", code=400)
+        raise Fault(
+            "`pkg_resources` could not be imported, "
+            "please reinstall Elpy RPC virtualenv with"
+            " `M-x elpy-rpc-reinstall-virtualenv`",
+            code=400,
+        )
+
 
 import os
 
@@ -30,6 +36,7 @@ try:
         black = None
     else:
         import black
+
         current_version = parse_version(black.__version__)
         if current_version >= parse_version("21.5b1"):
             from black.files import find_pyproject_toml
@@ -43,9 +50,7 @@ except ImportError:  # pragma: no cover
 
 
 def fix_code(code, directory):
-    """Formats Python code to conform to the PEP 8 style guide.
-
-    """
+    """Formats Python code to conform to the PEP 8 style guide."""
     if not black:
         raise Fault("black not installed", code=400)
     # Get black config from pyproject.toml
@@ -65,13 +70,15 @@ def fix_code(code, directory):
     try:
         if parse_version(black.__version__) < parse_version("19.0"):
             reformatted_source = black.format_file_contents(
-                src_contents=code, line_length=line_length, fast=False)
+                src_contents=code, line_length=line_length, fast=False
+            )
         else:
             fm = black.FileMode(
-                line_length=line_length,
-                string_normalization=string_normalization)
+                line_length=line_length, string_normalization=string_normalization
+            )
             reformatted_source = black.format_file_contents(
-                src_contents=code, fast=False, mode=fm)
+                src_contents=code, fast=False, mode=fm
+            )
         return reformatted_source
     except black.NothingChanged:
         return code

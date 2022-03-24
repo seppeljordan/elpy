@@ -10,6 +10,7 @@ See the documentation of the JSONRPCServer class for further details.
 import json
 import sys
 import traceback
+
 from .json_encoder import JSONEncoder
 
 
@@ -64,7 +65,7 @@ class JSONRPCServer(object):
 
         """
         line = self.stdin.readline()
-        if line == '':
+        if line == "":
             raise EOFError()
         return json.loads(line)
 
@@ -90,12 +91,11 @@ class JSONRPCServer(object):
 
         """
         request = self.read_json()
-        if 'method' not in request:
-            raise ValueError("Received a bad request: {0}"
-                             .format(request))
-        method_name = request['method']
-        request_id = request.get('id', None)
-        params = request.get('params') or []
+        if "method" not in request:
+            raise ValueError("Received a bad request: {0}".format(request))
+        method_name = request["method"]
+        request_id = request.get("id", None)
+        params = request.get("params") or []
         try:
             method = getattr(self, "rpc_" + method_name, None)
             if method is not None:
@@ -103,18 +103,18 @@ class JSONRPCServer(object):
             else:
                 result = self.handle(method_name, params)
             if request_id is not None:
-                self.write_json(result=result,
-                                id=request_id)
+                self.write_json(result=result, id=request_id)
         except Fault as fault:
-            error = {"message": fault.message,
-                     "code": fault.code}
+            error = {"message": fault.message, "code": fault.code}
             if fault.data is not None:
                 error["data"] = fault.data
             self.write_json(error=error, id=request_id)
         except Exception as e:
-            error = {"message": str(e),
-                     "code": 500,
-                     "data": {"traceback": traceback.format_exc()}}
+            error = {
+                "message": str(e),
+                "code": 500,
+                "data": {"traceback": traceback.format_exc()},
+            }
             self.write_json(error=error, id=request_id)
 
     def handle(self, method_name, args):
@@ -146,6 +146,7 @@ class Fault(Exception):
     4xx: An expected error occurred
     5xx: An unexpected error occurred (usually includes a traceback)
     """
+
     def __init__(self, message, code=500, data=None):
         super(Fault, self).__init__(message)
         self.message = message
