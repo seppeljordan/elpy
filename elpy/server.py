@@ -8,6 +8,7 @@ backend.
 import io
 import os
 import pydoc
+from typing import Any, Dict, Union
 
 from elpy import jedibackend
 from elpy.auto_pep8 import fix_code
@@ -224,12 +225,12 @@ class ElpyRPCServer(JSONRPCServer):
         return fix_code_with_black(source, directory)
 
 
-def get_source(fileobj):
+def get_source(fileobj: Union[str, Dict[str, Any]]) -> str:
     """Translate fileobj into file contents.
 
     fileobj is either a string or a dict. If it's a string, that's the
-    file contents. If it's a string, then the filename key contains
-    the name of the file whose contents we are to use.
+    file contents. If it's a dict, then the filename key contains the
+    name of the file whose contents we are to use.
 
     If the dict contains a true value for the key delete_after_use,
     the file should be deleted once read.

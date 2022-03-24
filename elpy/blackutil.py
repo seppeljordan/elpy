@@ -7,7 +7,6 @@ import os
 import black
 import toml
 from black.files import find_pyproject_toml
-from pkg_resources import parse_version
 
 from elpy.rpc import Fault
 
@@ -31,17 +30,12 @@ def fix_code(code, directory):
         if "skip-string-normalization" in black_config:
             string_normalization = not black_config["skip-string-normalization"]
     try:
-        if parse_version(black.__version__) < parse_version("19.0"):
-            reformatted_source = black.format_file_contents(
-                src_contents=code, line_length=line_length, fast=False
-            )
-        else:
-            fm = black.FileMode(
-                line_length=line_length, string_normalization=string_normalization
-            )
-            reformatted_source = black.format_file_contents(
-                src_contents=code, fast=False, mode=fm
-            )
+        fm = black.FileMode(
+            line_length=line_length, string_normalization=string_normalization
+        )
+        reformatted_source = black.format_file_contents(
+            src_contents=code, fast=False, mode=fm
+        )
         return reformatted_source
     except black.NothingChanged:
         return code
