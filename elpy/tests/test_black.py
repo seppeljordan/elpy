@@ -2,6 +2,7 @@
 """Tests for the elpy.black module"""
 
 import os
+from unittest import mock
 
 from elpy import blackutil
 from elpy.rpc import Fault
@@ -13,13 +14,12 @@ class BLACKTestCase(BackendTestCase):
         src = "x = "
         self.assertRaises(Fault, blackutil.fix_code, src, os.getcwd())
 
-    def test_fix_code_should_throw_error_without_black_installed(self):
-        black = blackutil.black
-        blackutil.black = None
+    @mock.patch("elpy.blackutil.load_black")
+    def test_fix_code_should_throw_error_without_black_installed(self, mocked_function):
+        mocked_function.return_value = None
         src = "x=       123\n", "x = 123\n"
         with self.assertRaises(Fault):
             blackutil.fix_code(src, os.getcwd())
-        blackutil.black = black
 
     def test_fix_code(self):
         testdata = [
