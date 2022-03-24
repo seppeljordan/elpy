@@ -20,10 +20,10 @@
 ;;
 ;;; Commentary:
 ;;
-;; elpy-rpc is a simple JSON-based RPC protocol. It's mostly JSON-RPC
+;; elpy-rpc is a simple JSON-based RPC protocol.  It's mostly JSON-RPC
 ;; 1.0, except we do not implement the full protocol as we do not need
-;; all the features. Emacs starts a Python subprocess which runs a
-;; special module. The module reads JSON-RPC requests and responds
+;; all the features.  Emacs starts a Python subprocess which runs a
+;; special module.  The module reads JSON-RPC requests and responds
 ;; with JSON-RPC responses.
 ;;
 ;;; Code:
@@ -34,11 +34,11 @@
 (defcustom elpy-rpc-maximum-buffer-age (* 5 60)
   "Seconds after which Elpy automatically closes an unused RPC buffer.
 
-Elpy creates RPC buffers over time, depending on python interpreters
-and the project root. When there are many projects being worked on,
-these can accumulate. Setting this variable to an integer will close
-buffers and processes when they have not been used for this amount of
-seconds.
+Elpy creates RPC buffers over time, depending on python
+interpreters and the project root.  When there are many projects
+being worked on, these can accumulate.  Setting this variable to
+an integer will close buffers and processes when they have not
+been used for this amount of seconds.
 
 Setting this variable to nil will disable the behavior."
   :type '(choice (const :tag "Never" nil)
@@ -50,7 +50,7 @@ Setting this variable to nil will disable the behavior."
 
 The Elpy RPC protocol uses JSON as the serialization format.
 Large buffers take a long time to encode, so Elpy can transmit
-them via temporary files. If a buffer is larger than this value,
+them via temporary files.  If a buffer is larger than this value,
 it is sent via a temporary file."
   :type 'integer
   :safe #'integerp
@@ -60,9 +60,9 @@ it is sent via a temporary file."
   "Size for a source buffer over which Elpy completion will not work.
 
 To provide completion, Elpy's backends have to parse the whole
-file every time. For very large files, this is slow, and can make
-Emacs laggy. Elpy will simply not work on buffers larger than
-this to prevent this from happening."
+file every time.  For very large files, this is slow, and can
+make Emacs laggy.  Elpy will simply not work on buffers larger
+than this to prevent this from happening."
   :type 'integer
   :safe #'integerp
   :group 'elpy)
@@ -562,7 +562,7 @@ See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=17647"
   "Call METHOD with PARAMS in the backend.
 
 If SUCCESS and optionally ERROR is given, return immediately and
-call those when a result is available. Otherwise, wait for a
+call those when a result is available.  Otherwise, wait for a
 result and return that."
   (unless error
     (setq error #'elpy-rpc--default-error-callback))
