@@ -39,6 +39,7 @@
 (require 'etags)
 (require 'files-x)
 (require 'grep)
+(require 'hideshow)
 (require 'ido)
 (require 'json)
 (require 'python)
@@ -631,9 +632,13 @@ virtualenv.
 
 (defvar elpy-config--get-config "import json
 import sys
-from distutils.version import LooseVersion
+
 import warnings
 warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+warnings.filterwarnings('ignore', category=PendingDeprecationWarning)
+
+from distutils.version import LooseVersion
 
 try:
     import urllib2 as urllib
@@ -687,17 +692,6 @@ try:
 except:
     config['jedi_version'] = None
     config['jedi_latest'] = latest('jedi')
-
-try:
-    import rope
-    config['rope_version'] = rope.VERSION
-    if sys.version_info[0] <= 2:
-        config['rope_latest'] = latest('rope', config['rope_version'])
-    else:
-        config['rope_latest'] = latest('rope_py3k', config['rope_version'])
-except:
-    config['rope_version'] = None
-    config['rope_latest'] = latest('rope')
 
 try:
     import autopep8
@@ -817,11 +811,7 @@ item in another window.\n\n")
   "Insert help text and widgets for configuration problems."
   (unless config
     (setq config (elpy-config--get-config)))
-  (let* ((rpc-python-version (gethash "rpc_python_version" config))
-         (rope-pypi-package  (if (and rpc-python-version
-                                      (string-match "^3\\." rpc-python-version))
-                                 "rope_py3k"
-                               "rope")))
+  (let* ((rpc-python-version (gethash "rpc_python_version" config)))
 
     ;; Python not found
     (unless (gethash "rpc_python_executable" config)
@@ -944,16 +934,6 @@ item in another window.\n\n")
                      :package "jedi")
       (insert "\n\n"))
 
-    ;; Newer version of Rope available
-    (when (and (gethash "rope_version" config)
-               (gethash "rope_latest" config))
-      (elpy-insert--para
-       "There is a newer version of Rope available.\n")
-      (insert "\n")
-      (widget-create 'elpy-insert--pip-button
-                     :package rope-pypi-package :upgrade t)
-      (insert "\n\n"))
-
     ;; Newer version of Jedi available
     (when (and (gethash "jedi_version" config)
                (gethash "jedi_latest" config))
@@ -1050,7 +1030,6 @@ rpc_python
 rpc_python_version
 rpc_python_executable
 jedi_version
-rope_version
 virtual_env
 virtual_env_short"
   (with-temp-buffer
@@ -1134,8 +1113,6 @@ virtual_env_short"
         (rpc-virtualenv-short (gethash "rpc_virtualenv_short" config))
         (jedi-version (gethash "jedi_version" config))
         (jedi-latest (gethash "jedi_latest" config))
-        (rope-version (gethash "rope_version" config))
-        (rope-latest (gethash "rope_latest" config))
         (autopep8-version (gethash "autopep8_version" config))
         (autopep8-latest (gethash "autopep8_latest" config))
         (yapf-version (gethash "yapf_version" config))
@@ -1203,9 +1180,6 @@ virtual_env_short"
             (" Jedi" . ,(elpy-config--package-link "jedi"
                                                   jedi-version
                                                   jedi-latest))
-            (" Rope" . ,(elpy-config--package-link "rope"
-                                                  rope-version
-                                                  rope-latest))
             (" Autopep8" . ,(elpy-config--package-link "autopep8"
                                                       autopep8-version
                                                       autopep8-latest))

@@ -4,7 +4,10 @@ import sys
 import unittest
 
 import jedi
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 import re
 
 from elpy import jedibackend
@@ -65,7 +68,7 @@ class TestRPCGetDocstring(RPCGetDocstringTests,
     def __init__(self, *args, **kwargs):
         super(TestRPCGetDocstring, self).__init__(*args, **kwargs)
         self.JSON_LOADS_REGEX = (
-            r'loads\(s.*, encoding.*, cls.*, object_hook.*, parse_float.*, '
+            r'loads\(s.*, cls.*, object_hook.*, parse_float.*, '
             r'parse_int.*, .*\)'
             )
 

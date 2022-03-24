@@ -71,7 +71,11 @@ this to prevent this from happening."
                                        (or (executable-find "py")
                                            (executable-find "pythonw")
                                            "python")
-                                     "python")
+                                     (if (executable-find "python")
+					 "python"
+				       ;; Fallback on systems where python is not
+				       ;; symlinked to python3.
+				       "python3"))
   "The Python interpreter for the RPC backend.
 
 This should NOT be an interactive shell like ipython or jupyter.
@@ -96,7 +100,7 @@ for example), set this to the full interpreter path."
            (elpy-rpc-restart)))
   :group 'elpy)
 
-(defcustom elpy-rpc-pythonpath (file-name-directory (locate-library "elpy"))
+(defcustom elpy-rpc-pythonpath (file-name-directory load-file-name)
   "A directory to add to the PYTHONPATH for the RPC process.
 
 This should be a directory where the elpy module can be found. If
@@ -229,8 +233,8 @@ needed packages from `elpy-rpc--get-package-list'."
   "Return the list of packages to be installed in the RPC virtualenv."
   (let ((rpc-python-version (elpy-rpc--get-python-version)))
     (if (version< rpc-python-version "3.6.0")
-        '("jedi" "flake8" "autopep8" "yapf" "rope")
-      '("jedi" "flake8" "autopep8" "yapf" "black" "rope"))))
+        '("jedi" "flake8" "autopep8" "yapf")
+      '("jedi" "flake8" "autopep8" "yapf" "black"))))
 
 (defun elpy-rpc--get-python-version ()
   "Return the RPC python version."
@@ -418,7 +422,8 @@ binaries used to create the virtualenv."
                          "-m" "pip" "install" "--upgrade"
                          (elpy-rpc--get-package-list))
                   0)
-          (message "Elpy failed to install some of the RPC dependencies, please use `elpy-config' to install them.")))
+          (message "Elpy failed to install some of the RPC dependencies, please use `elpy-config' to install them.\n%s" (buffer-string))
+          ))
     (message "Some of Elpy's functionnalities will not work, please use `elpy-config' to install the needed python dependencies.")))
 
 (defun elpy-rpc-reinstall-virtualenv ()
@@ -926,36 +931,6 @@ This is usually an error or backtrace."
                           "\n"
                           "script = jedi.Script(" script-args ")\n"
                           "script." method "()\n"))))
-            (let ((rope-info (cdr (assq 'rope_debug_info data))))
-              (when rope-info
-                (insert "\n")
-                (elpy-insert--header "Rope Debug Information")
-                (insert "```\n"
-                        "\n"
-                        "Reproduction:\n"
-                        "\n")
-                (let ((project-root (cdr (assq 'project_root rope-info)))
-                      (filename (cdr (assq 'filename rope-info)))
-                      (source (cdr (assq 'source rope-info)))
-                      (function-name (cdr (assq 'function_name rope-info)))
-                      (function-args (cdr (assq 'function_args rope-info))))
-                  (insert "```Python\n")
-                  (insert "\n"
-                          "source = '''\n"
-                          source
-                          "'''\n"
-                          "\n")
-                  (insert "project = rope.base.project.Project(\n"
-                          (format "    %S,\n" project-root)
-                          "    ropefolder=None\n"
-                          ")\n")
-                  (insert "resource = rope.base.libutils.path_to_resource(\n"
-                          "    project,\n"
-                          (format "    %S,\n" filename)
-                          "    'file'\n"
-                          ")\n")
-                  (insert (format "%s(\n    %s\n)\n"
-                                  function-name function-args)))))
             (unless (= 0 (current-column))
               (insert "\n"))
             (insert "```"))
