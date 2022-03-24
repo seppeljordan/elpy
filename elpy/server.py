@@ -9,16 +9,12 @@ import io
 import os
 import pydoc
 
+from elpy import jedibackend
 from elpy.auto_pep8 import fix_code
 from elpy.blackutil import fix_code as fix_code_with_black
 from elpy.pydocutils import get_pydoc_completions
 from elpy.rpc import JSONRPCServer
 from elpy.yapfutil import fix_code as fix_code_with_yapf
-
-try:
-    from elpy import jedibackend
-except ImportError:  # pragma: no cover
-    jedibackend = None
 
 
 class ElpyRPCServer(JSONRPCServer):

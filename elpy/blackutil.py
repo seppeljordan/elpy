@@ -2,51 +2,14 @@
 
 """
 
-import sys
-
-from elpy.rpc import Fault
-
-# in case pkg_resources is not properly installed
-# (see https://github.com/jorgenschaefer/elpy/issues/1674).
-try:
-    from pkg_resources import parse_version
-except ImportError:  # pragma: no cover
-
-    def parse_version(*arg, **kwargs):
-        raise Fault(
-            "`pkg_resources` could not be imported, "
-            "please reinstall Elpy RPC virtualenv with"
-            " `M-x elpy-rpc-reinstall-virtualenv`",
-            code=400,
-        )
-
-
 import os
 
-try:
-    import toml
-except ImportError:
-    toml = None
+import black
+import toml
+from black.files import find_pyproject_toml
+from pkg_resources import parse_version
 
-
-BLACK_NOT_SUPPORTED = sys.version_info < (3, 6)
-
-try:
-    if BLACK_NOT_SUPPORTED:  # pragma: no cover
-        black = None
-    else:
-        import black
-
-        current_version = parse_version(black.__version__)
-        if current_version >= parse_version("21.5b1"):
-            from black.files import find_pyproject_toml
-        elif current_version >= parse_version("20.8b0"):
-            from black import find_pyproject_toml
-        else:
-            find_pyproject_toml = None
-
-except ImportError:  # pragma: no cover
-    black = None
+from elpy.rpc import Fault
 
 
 def fix_code(code, directory):

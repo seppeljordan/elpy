@@ -19,6 +19,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from typing import Optional
 
 from elpy import jedibackend
 from elpy.rpc import Fault
@@ -64,7 +65,7 @@ class GenericRPCTests(object):
 
     """
 
-    METHOD = None
+    METHOD: Optional[str] = None
 
     def rpc(self, filename, source, offset):
         method = getattr(self.backend, self.METHOD)

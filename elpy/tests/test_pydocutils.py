@@ -3,11 +3,7 @@ import shutil
 import sys
 import tempfile
 import unittest
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import mock
 
 import elpy.pydocutils
 

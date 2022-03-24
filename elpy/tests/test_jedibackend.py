@@ -1,16 +1,12 @@
 """Tests for the elpy.jedibackend module."""
 
+import re
 import sys
 import unittest
+from typing import Any, Dict
+from unittest import mock
 
 import jedi
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
-
-import re
 
 from elpy import jedibackend, rpc
 from elpy.tests.support import (
@@ -172,8 +168,8 @@ class TestRPCGetInlineDiff(RPCGetInlineDiffTests, JediBackendTestCase):
 
 
 class TestRPCGetCalltip(RPCGetCalltipTests, JediBackendTestCase):
-    KEYS_CALLTIP = {"index": None, "params": [], "name": "keys"}
-    RADIX_CALLTIP = {"index": None, "params": [], "name": "radix"}
+    KEYS_CALLTIP: Dict[str, Any] = {"index": None, "params": [], "name": "keys"}
+    RADIX_CALLTIP: Dict[str, Any] = {"index": None, "params": [], "name": "radix"}
     ADD_CALLTIP = {"index": 0, "params": ["a", "b"], "name": "add"}
     THREAD_CALLTIP = {
         "name": "Thread",
