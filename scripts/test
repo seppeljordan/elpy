@@ -10,6 +10,10 @@ fi
 
 if [ -z "$1" -o "$1" = "python" ]
 then
+    flake8 elpy
+    mypy
+    black elpy --check
+    isort elpy --check
     python -m unittest discover elpy
 fi
 

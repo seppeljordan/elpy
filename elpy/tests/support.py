@@ -21,7 +21,6 @@ import tempfile
 import unittest
 from typing import Optional
 
-from elpy import jedibackend
 from elpy.rpc import Fault
 
 

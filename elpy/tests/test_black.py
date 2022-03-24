@@ -2,7 +2,6 @@
 """Tests for the elpy.black module"""
 
 import os
-import unittest
 
 from elpy import blackutil
 from elpy.rpc import Fault

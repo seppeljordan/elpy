@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from elpy import rpc, server
+from elpy import server
 from elpy.tests.support import BackendTestCase
 
 
