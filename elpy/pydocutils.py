@@ -3,8 +3,6 @@ import types
 from pkgutil import iter_modules
 from pydoc import ErrorDuringImport, resolve, safeimport
 
-from elpy import compat
-
 # Types we want to recurse into (nodes).
 CONTAINER_TYPES = (type, types.ModuleType)
 # Types of attributes we can get documentation for (leaves).
@@ -16,10 +14,6 @@ PYDOC_TYPES = (
     types.MethodType,
     types.ModuleType,
 )
-if not compat.PYTHON3:  # pragma: nocover
-    # Python 2 old style classes
-    CONTAINER_TYPES = tuple(list(CONTAINER_TYPES) + [types.ClassType])
-    PYDOC_TYPES = tuple(list(PYDOC_TYPES) + [types.ClassType])
 
 
 def get_pydoc_completions(modulename):
@@ -28,7 +22,6 @@ def get_pydoc_completions(modulename):
     Returns a list of possible values to be passed to pydoc.
 
     """
-    modulename = compat.ensure_not_unicode(modulename)
     modulename = modulename.rstrip(".")
     if modulename == "":
         return sorted(get_modules())
@@ -70,7 +63,6 @@ def get_modules(modulename=None):
     and packages.
 
     """
-    modulename = compat.ensure_not_unicode(modulename)
     if not modulename:
         try:
             return [

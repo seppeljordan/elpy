@@ -3,9 +3,9 @@
 import json
 import sys
 import unittest
+from io import StringIO
 
 from elpy import rpc
-from elpy.tests.compat import StringIO
 
 
 class TestFault(unittest.TestCase):

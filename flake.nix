@@ -19,6 +19,7 @@
               isort
               jedi
               mock
+              mypy
               nose
               pip
               setuptools

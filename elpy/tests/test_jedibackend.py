@@ -13,7 +13,6 @@ except ImportError:
 import re
 
 from elpy import jedibackend, rpc
-from elpy.tests import compat
 from elpy.tests.support import (
     BackendTestCase,
     RPCGetAssignmentTests,
@@ -176,32 +175,18 @@ class TestRPCGetCalltip(RPCGetCalltipTests, JediBackendTestCase):
     KEYS_CALLTIP = {"index": None, "params": [], "name": "keys"}
     RADIX_CALLTIP = {"index": None, "params": [], "name": "radix"}
     ADD_CALLTIP = {"index": 0, "params": ["a", "b"], "name": "add"}
-    if compat.PYTHON3:
-        THREAD_CALLTIP = {
-            "name": "Thread",
-            "index": 0,
-            "params": [
-                "group: None=...",
-                "target: Optional[Callable[..., Any]]=...",
-                "name: Optional[str]=...",
-                "args: Iterable[Any]=...",
-                "kwargs: Mapping[str, Any]=...",
-                "daemon: Optional[bool]=...",
-            ],
-        }
-
-    else:
-        THREAD_CALLTIP = {
-            "index": 0,
-            "name": "Thread",
-            "params": [
-                "group: None=...",
-                "target: Optional[Callable[..., Any]]=...",
-                "name: Optional[str]=...",
-                "args: Iterable[Any]=...",
-                "kwargs: Mapping[str, Any]=...",
-            ],
-        }
+    THREAD_CALLTIP = {
+        "name": "Thread",
+        "index": 0,
+        "params": [
+            "group: None=...",
+            "target: Optional[Callable[..., Any]]=...",
+            "name: Optional[str]=...",
+            "args: Iterable[Any]=...",
+            "kwargs: Mapping[str, Any]=...",
+            "daemon: Optional[bool]=...",
+        ],
+    }
 
     def test_should_not_fail_with_get_subscope_by_name(self):
         # Bug #677 / jedi#628

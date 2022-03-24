@@ -22,7 +22,6 @@ import unittest
 
 from elpy import jedibackend
 from elpy.rpc import Fault
-from elpy.tests import compat
 
 
 class BackendTestCase(unittest.TestCase):
@@ -50,10 +49,7 @@ class BackendTestCase(unittest.TestCase):
             os.makedirs(os.path.dirname(full_name))
         except OSError:
             pass
-        if compat.PYTHON3:
-            fobj = open(full_name, "w", encoding="utf-8")
-        else:
-            fobj = open(full_name, "w")
+        fobj = open(full_name, "w", encoding="utf-8")
         with fobj as f:
             f.write(contents)
         return pathlib.Path(full_name)
@@ -314,6 +310,7 @@ def funct2():
 
 class RPCGetCompletionsTests(GenericRPCTests):
     METHOD = "rpc_get_completions"
+    JSON_COMPLETIONS = ["SONDecoder", "SONEncoder", "SONDecodeError"]
 
     def test_should_complete_builtin(self):
         source, offset = source_and_offset("o_|_")
@@ -326,11 +323,6 @@ class RPCGetCompletionsTests(GenericRPCTests):
 
         for candidate in expected:
             self.assertIn(candidate, actual)
-
-    if sys.version_info >= (3, 5) or sys.version_info < (3, 0):
-        JSON_COMPLETIONS = ["SONDecoder", "SONEncoder", "SONDecodeError"]
-    else:
-        JSON_COMPLETIONS = ["SONDecoder", "SONEncoder"]
 
     def test_should_complete_imports(self):
         source, offset = source_and_offset("import json\n" "json.J_|_")
@@ -345,10 +337,7 @@ class RPCGetCompletionsTests(GenericRPCTests):
         source, offset = source_and_offset("import multi_|_")
         filename = self.project_file("test.py", source)
         completions = self.backend.rpc_get_completions(filename, source, offset)
-        if compat.PYTHON3:
-            expected = ["processing"]
-        else:
-            expected = ["file", "processing"]
+        expected = ["dict", "processing"]
         self.assertEqual(
             sorted([cand["suffix"] for cand in completions]), sorted(expected)
         )
