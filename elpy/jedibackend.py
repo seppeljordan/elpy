@@ -9,12 +9,14 @@ https://github.com/davidhalter/jedi
 import re
 import sys
 import traceback
+from typing import Any, Dict, Optional, Tuple
 
 import jedi
 from jedi import debug
 
 from elpy import rpc
 from elpy.rpc import Fault
+from elpy.use_cases import refactor_rename_use_case as use_case
 
 
 class JediBackend:
@@ -28,14 +30,14 @@ class JediBackend:
 
     name = "jedi"
 
-    def __init__(self, project_root, environment_binaries_path):
+    def __init__(self, project_root, environment_binaries_path) -> None:
         self.project_root = project_root
         self.environment = None
         if environment_binaries_path is not None:
             self.environment = jedi.create_environment(
                 environment_binaries_path, safe=False
             )
-        self.completions = {}
+        self.completions: Dict[Any, Any] = {}
         sys.path.append(project_root)
         # Backward compatibility to jedi<17
 
@@ -310,28 +312,24 @@ class JediBackend:
             )
         return result
 
-    def rpc_get_rename_diff(self, filename, source, offset, new_name):
+    def rpc_get_rename_diff(
+        self, filename: str, source: str, offset: int, new_name: str
+    ) -> Dict[str, Any]:
         """Get the diff resulting from renaming the thing at point"""
-        if not hasattr(jedi.Script, "rename"):  # pragma: no cover
-            return {"success": "Not available"}
-        line, column = pos_to_linecol(source, offset)
-        ren = run_with_debug(
-            jedi,
-            "rename",
-            code=source,
-            path=filename,
-            environment=self.environment,
-            fun_kwargs={"line": line, "column": column, "new_name": new_name},
+        output_port = RefactorRenameOutputPort()
+        refactor_rename_use_case = use_case.RefactorRenameUseCase(
+            presenter=output_port,
+            refactorer=self,
         )
-        if ren is None:
-            return {"success": False}
-        else:
-            return {
-                "success": True,
-                "project_path": ren._inference_state.project._path,
-                "diff": ren.get_diff(),
-                "changed_files": list(ren.get_changed_files().keys()),
-            }
+        refactor_rename_use_case.create_rename_diff(
+            request=use_case.Request(
+                source=source,
+                offset=offset,
+                new_name=new_name,
+                file_name=filename,
+            )
+        )
+        return output_port.get_response()
 
     def rpc_get_extract_variable_diff(
         self, filename, source, offset, new_name, line_beg, line_end, col_beg, col_end
@@ -416,6 +414,37 @@ class JediBackend:
                 "changed_files": list(ren.get_changed_files().keys()),
             }
 
+    def rename_identifier(
+        self,
+        source: str,
+        offset: int,
+        file_name: str,
+        new_identifier_name: str,
+    ) -> Optional[use_case.Refactoring]:
+        line, column = pos_to_linecol(source, offset)
+        ren = run_with_debug(
+            jedi,
+            "rename",
+            code=source,
+            path=file_name,
+            environment=self.environment,
+            fun_kwargs={
+                "line": line,
+                "column": column,
+                "new_name": new_identifier_name,
+            },
+        )
+        if ren is None:
+            return None
+        return use_case.Refactoring(
+            changed_files=ren.get_changed_files().keys(),
+            diff=ren.get_diff(),
+            project_path=ren._inference_state.project._path,
+        )
+
+    def can_do_renaming(self) -> bool:
+        return hasattr(jedi.Script, "rename")
+
 
 # From the Jedi documentation:
 #
@@ -425,7 +454,7 @@ class JediBackend:
 #   should be the path of your file in the file system.
 
 
-def pos_to_linecol(text, pos):
+def pos_to_linecol(text: str, pos: int) -> Tuple[int, int]:
     """Return a tuple of line and column for offset pos in text.
 
     Lines are one-based, columns zero-based.
@@ -505,3 +534,28 @@ def run_with_debug(jedi, name, fun_kwargs={}, *args, re_raise=(), **kwargs):
             raise rpc.Fault(message=str(e), code=500, data=data)
         finally:
             jedi.set_debug_function(None)
+
+
+class RefactorRenameOutputPort:
+    def __init__(self) -> None:
+        self.response: Optional[use_case.Response] = None
+
+    def present_refactoring(self, response: use_case.Response) -> None:
+        self.response = response
+
+    def get_response(self) -> Dict[str, Any]:
+        assert self.response
+        changes = self.response.changes
+        if changes == use_case.FailureReason.NOT_AVAILABLE:
+            return {"success": "Not available"}
+        elif changes == use_case.FailureReason.NO_RESULT:
+            return {"success": False}
+        elif isinstance(changes, use_case.Changes):
+            return {
+                "success": True,
+                "project_path": changes.project_path,
+                "diff": changes.diff,
+                "changed_files": changes.changed_files,
+            }
+        else:
+            raise Exception()
