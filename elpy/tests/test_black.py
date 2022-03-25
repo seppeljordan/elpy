@@ -1,7 +1,8 @@
 # coding: utf-8
 """Tests for the elpy.black module"""
 
-import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest import mock
 
 from elpy import blackutil
@@ -10,16 +11,25 @@ from elpy.tests.support import BackendTestCase
 
 
 class BLACKTestCase(BackendTestCase):
-    def test_fix_code_should_throw_error_for_invalid_code(self):
+    def setUp(self) -> None:
+        self.environment = TestEnvironment()
+
+    def tearDown(self) -> None:
+        self.environment.clean()
+
+    def test_fix_code_should_throw_error_for_invalid_code(self) -> None:
         src = "x = "
-        self.assertRaises(Fault, blackutil.fix_code, src, os.getcwd())
+        with self.assertRaises(Fault):
+            blackutil.fix_code(src, self.environment.get_working_directory())
 
     @mock.patch("elpy.blackutil.load_black")
-    def test_fix_code_should_throw_error_without_black_installed(self, mocked_function):
+    def test_fix_code_should_throw_error_without_black_installed(
+        self, mocked_function: mock.Mock
+    ) -> None:
         mocked_function.return_value = None
-        src = "x=       123\n", "x = 123\n"
+        src = "x=       123\n"
         with self.assertRaises(Fault):
-            blackutil.fix_code(src, os.getcwd())
+            blackutil.fix_code(src, self.environment.get_working_directory())
 
     def test_fix_code(self):
         testdata = [
@@ -37,15 +47,10 @@ class BLACKTestCase(BackendTestCase):
         for src, expected in testdata:
             self._assert_format(src, expected)
 
-    def _assert_format(self, src, expected):
-        new_block = blackutil.fix_code(src, os.getcwd())
-        self.assertEqual(new_block, expected)
-
     def test_should_read_options_from_pyproject_toml(self):
-        with open("pyproject.toml", "w") as f:
-            f.write("[tool.black]\nline-length = 10")
-
-        self.addCleanup(os.remove, "pyproject.toml")
+        self.environment.create_or_replace_pyproject_toml(
+            "[tool.black]\nline-length = 10"
+        )
 
         testdata = [
             ("x=       123\n", "x = 123\n"),
@@ -59,3 +64,23 @@ class BLACKTestCase(BackendTestCase):
         ]
         for src, expected in testdata:
             self._assert_format(src, expected)
+
+    def _assert_format(self, src, expected):
+        new_block = blackutil.fix_code(src, self.environment.get_working_directory())
+        self.assertEqual(new_block, expected)
+
+
+class TestEnvironment:
+    def __init__(self) -> None:
+        self.directory = TemporaryDirectory()
+
+    def get_working_directory(self) -> str:
+        return self.directory.name
+
+    def create_or_replace_pyproject_toml(self, content: str) -> None:
+        path = Path(self.directory.name)
+        toml_path = path / "pyproject.toml"
+        toml_path.write_text(content)
+
+    def clean(self) -> None:
+        self.directory.cleanup()
