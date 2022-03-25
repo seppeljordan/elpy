@@ -31,6 +31,9 @@
               yapf
             ]) ++ (with pkgs; [ cask nixfmt ]);
           };
+          checks = import ./checks.nix {
+            python = pkgs.python3;
+          };
         });
     in systemDependent;
 }
