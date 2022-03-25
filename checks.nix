@@ -1,22 +1,7 @@
-{ python }:
+{ python3, python38, python39, python310 }:
 {
-  pythonTests = python.pkgs.buildPythonPackage {
-    pname = "elpy";
-    version = "dev";
-    src = ./.;
-    propagatedBuildInputs = with python.pkgs; [
-      flake8
-      toml
-    ];
-    checkInputs = with python.pkgs; [
-      black
-      yapf
-      jedi
-      autopep8
-    ];
-
-    # parso needs this to be set. Otherwise it would try to write to
-    # /homeless-shelter, which is read-only.
-    XDG_CACHE_HOME = "/tmp";
-  };
+  python38Tests = python38.pkgs.elpy;
+  python39Tests = python39.pkgs.elpy;
+  python310Tests = python310.pkgs.elpy;
+  python3Tests = python3.pkgs.elpy;
 }
