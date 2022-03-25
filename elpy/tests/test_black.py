@@ -31,7 +31,7 @@ class BLACKTestCase(BackendTestCase):
         with self.assertRaises(Fault):
             blackutil.fix_code(src, self.environment.get_working_directory())
 
-    def test_fix_code(self):
+    def test_fix_code(self) -> None:
         testdata = [
             ("x=       123\n", "x = 123\n"),
             ("x=1; \ny=2 \n", "x = 1\ny = 2\n"),
@@ -39,7 +39,7 @@ class BLACKTestCase(BackendTestCase):
         for src, expected in testdata:
             self._assert_format(src, expected)
 
-    def test_perfect_code(self):
+    def test_perfect_code(self) -> None:
         testdata = [
             ("x = 123\n", "x = 123\n"),
             ("x = 1\ny = 2\n", "x = 1\ny = 2\n"),
@@ -47,7 +47,7 @@ class BLACKTestCase(BackendTestCase):
         for src, expected in testdata:
             self._assert_format(src, expected)
 
-    def test_should_read_options_from_pyproject_toml(self):
+    def test_should_read_options_from_pyproject_toml(self) -> None:
         self.environment.create_or_replace_pyproject_toml(
             "[tool.black]\nline-length = 10"
         )
@@ -65,7 +65,7 @@ class BLACKTestCase(BackendTestCase):
         for src, expected in testdata:
             self._assert_format(src, expected)
 
-    def _assert_format(self, src, expected):
+    def _assert_format(self, src: str, expected: str) -> None:
         new_block = blackutil.fix_code(src, self.environment.get_working_directory())
         self.assertEqual(new_block, expected)
 
