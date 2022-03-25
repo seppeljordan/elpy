@@ -10,7 +10,7 @@ class RefactorRenameUseCase:
     refactorer: Refactorer
     presenter: RefactorRenamePresenter
 
-    def create_rename_diff(self, request: Request):
+    def create_rename_diff(self, request: Request) -> None:
         if not self.refactorer.can_do_renaming():
             self.presenter.present_refactoring(
                 Response(changes=FailureReason.NOT_AVAILABLE)
