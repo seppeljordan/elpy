@@ -4,7 +4,7 @@
 }:
 buildPythonPackage {
   pname = "elpy";
-  version = "dev";
+  version = "1.35.0";
   src = ../..;
   propagatedBuildInputs = [
     flake8

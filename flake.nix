@@ -29,7 +29,7 @@
               virtualenv
               wheel
               yapf
-            ]) ++ (with pkgs; [ cask nixfmt ]);
+            ]) ++ (with pkgs; [ cask nixfmt bump2version ]);
           };
           checks = import ./checks.nix {
             inherit (pkgs) python3 python38 python39 python310;
