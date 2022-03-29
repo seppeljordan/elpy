@@ -1,7 +1,7 @@
-from functools import lru_cache
 from typing import Callable, List, Optional
 from unittest import TestCase
 
+from elpy.tests.use_cases.dependency_injection import singleton
 from elpy.use_cases.refactor_rename_use_case import (
     Changes,
     FailureReason,
@@ -145,8 +145,6 @@ class TestingPresenter:
 
 
 class DependencyInjector:
-    singleton = lru_cache()
-
     def get_use_case(self) -> RefactorRenameUseCase:
         return RefactorRenameUseCase(
             refactorer=self.get_refactorer(),

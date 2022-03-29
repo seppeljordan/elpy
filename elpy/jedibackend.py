@@ -9,14 +9,14 @@ https://github.com/davidhalter/jedi
 import re
 import sys
 import traceback
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import jedi
 from jedi import debug
 
 from elpy import rpc
 from elpy.rpc import Fault
-from elpy.use_cases import refactor_rename_use_case as use_case
+from elpy.use_cases import get_completions_use_case, refactor_rename_use_case
 
 
 class JediBackend:
@@ -39,28 +39,23 @@ class JediBackend:
             )
         self.completions: Dict[Any, Any] = {}
         sys.path.append(project_root)
-        # Backward compatibility to jedi<17
 
-    def rpc_get_completions(self, filename, source, offset):
-        line, column = pos_to_linecol(source, offset)
-        proposals = run_with_debug(
-            jedi,
-            "complete",
-            code=source,
-            path=filename,
-            environment=self.environment,
-            fun_kwargs={"line": line, "column": column},
+    def rpc_get_completions(
+        self, filename: str, source: str, offset: int
+    ) -> List[Dict[str, str]]:
+        output_port = GetCompletionsOutputPort()
+        use_case = get_completions_use_case.GetCompletionsUseCase(
+            completer=self,
+            presenter=output_port,
         )
-        self.completions = dict((proposal.name, proposal) for proposal in proposals)
-        return [
-            {
-                "name": proposal.name.rstrip("="),
-                "suffix": proposal.complete.rstrip("="),
-                "annotation": proposal.type,
-                "meta": proposal.description,
-            }
-            for proposal in proposals
-        ]
+        use_case.get_completions(
+            get_completions_use_case.Request(
+                file_name=filename,
+                source=source,
+                offset=offset,
+            )
+        )
+        return output_port.render_completions()
 
     def rpc_get_completion_docstring(self, completion):
         proposal = self.completions.get(completion)
@@ -317,12 +312,12 @@ class JediBackend:
     ) -> Dict[str, Any]:
         """Get the diff resulting from renaming the thing at point"""
         output_port = RefactorRenameOutputPort()
-        refactor_rename_use_case = use_case.RefactorRenameUseCase(
+        use_case = refactor_rename_use_case.RefactorRenameUseCase(
             presenter=output_port,
             refactorer=self,
         )
-        refactor_rename_use_case.create_rename_diff(
-            request=use_case.Request(
+        use_case.create_rename_diff(
+            request=refactor_rename_use_case.Request(
                 source=source,
                 offset=offset,
                 new_name=new_name,
@@ -420,7 +415,7 @@ class JediBackend:
         offset: int,
         file_name: str,
         new_identifier_name: str,
-    ) -> Optional[use_case.Refactoring]:
+    ) -> Optional[refactor_rename_use_case.Refactoring]:
         line, column = pos_to_linecol(source, offset)
         ren = run_with_debug(
             jedi,
@@ -436,7 +431,7 @@ class JediBackend:
         )
         if ren is None:
             return None
-        return use_case.Refactoring(
+        return refactor_rename_use_case.Refactoring(
             changed_files=ren.get_changed_files().keys(),
             diff=ren.get_diff(),
             project_path=ren._inference_state.project._path,
@@ -444,6 +439,29 @@ class JediBackend:
 
     def can_do_renaming(self) -> bool:
         return hasattr(jedi.Script, "rename")
+
+    def get_completions(
+        self, file_name: str, source: str, offset: int
+    ) -> Iterable[get_completions_use_case.Completion]:
+        line, column = pos_to_linecol(source, offset)
+        proposals = run_with_debug(
+            jedi,
+            "complete",
+            code=source,
+            path=file_name,
+            environment=self.environment,
+            fun_kwargs={"line": line, "column": column},
+        )
+        self.completions = dict((proposal.name, proposal) for proposal in proposals)
+        return [
+            get_completions_use_case.Completion(
+                name=proposal.name.rstrip("="),
+                suffix=proposal.complete.rstrip("="),
+                annotation=proposal.type,
+                description=proposal.description,
+            )
+            for proposal in proposals
+        ]
 
 
 # From the Jedi documentation:
@@ -538,19 +556,19 @@ def run_with_debug(jedi, name, fun_kwargs={}, *args, re_raise=(), **kwargs):
 
 class RefactorRenameOutputPort:
     def __init__(self) -> None:
-        self.response: Optional[use_case.Response] = None
+        self.response: Optional[refactor_rename_use_case.Response] = None
 
-    def present_refactoring(self, response: use_case.Response) -> None:
+    def present_refactoring(self, response: refactor_rename_use_case.Response) -> None:
         self.response = response
 
     def get_response(self) -> Dict[str, Any]:
         assert self.response
         changes = self.response.changes
-        if changes == use_case.FailureReason.NOT_AVAILABLE:
+        if changes == refactor_rename_use_case.FailureReason.NOT_AVAILABLE:
             return {"success": "Not available"}
-        elif changes == use_case.FailureReason.NO_RESULT:
+        elif changes == refactor_rename_use_case.FailureReason.NO_RESULT:
             return {"success": False}
-        elif isinstance(changes, use_case.Changes):
+        elif isinstance(changes, refactor_rename_use_case.Changes):
             return {
                 "success": True,
                 "project_path": changes.project_path,
@@ -559,3 +577,23 @@ class RefactorRenameOutputPort:
             }
         else:
             raise Exception()
+
+
+class GetCompletionsOutputPort:
+    def __init__(self) -> None:
+        self.response: Optional[get_completions_use_case.Response] = None
+
+    def present_completion(self, response: get_completions_use_case.Response) -> None:
+        self.response = response
+
+    def render_completions(self) -> List[Dict[str, str]]:
+        assert self.response
+        return [
+            {
+                "name": proposal.name,
+                "suffix": proposal.suffix,
+                "annotation": proposal.annotation,
+                "meta": proposal.description,
+            }
+            for proposal in self.response.proposals
+        ]

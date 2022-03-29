@@ -14,7 +14,7 @@ import traceback
 from .json_encoder import JSONEncoder
 
 
-class JSONRPCServer(object):
+class JSONRPCServer:
     """Simple JSON-RPC-like server.
 
     This class will read single-line JSON expressions from stdin,
