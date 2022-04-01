@@ -1,21 +1,17 @@
-from typing import Callable, Iterable, List, Optional, cast
+from typing import Callable, Optional, cast
 from unittest import TestCase
 
-from elpy.tests.use_cases.dependency_injection import singleton
-from elpy.use_cases.get_completions_use_case import (
-    Completion,
-    GetCompletionsUseCase,
-    Request,
-    Response,
-)
+from elpy.use_cases.get_completions_use_case import Completion, Request, Response
+
+from .dependency_injection import DependencyInjector
 
 
 class Tests(TestCase):
     def setUp(self) -> None:
         self.injector = DependencyInjector()
-        self.presenter = self.injector.get_presenter()
+        self.presenter = self.injector.get_completions_presenter()
         self.completer = self.injector.get_completer()
-        self.use_case = self.injector.get_use_case()
+        self.use_case = self.injector.get_completions_use_case()
 
     def test_return_no_proposals_when_completer_does_not_find_completions(self) -> None:
         self.completer.set_completions([])
@@ -119,41 +115,3 @@ class Tests(TestCase):
         if condition:
             response = cast(Response, output)
             self.assertTrue(condition(response))
-
-
-class Completer:
-    def __init__(self) -> None:
-        self.completions: List[Completion] = []
-
-    def set_completions(self, completions: List[Completion]) -> None:
-        self.completions = completions
-
-    def get_completions(
-        self, file_name: str, source: str, offset: int
-    ) -> Iterable[Completion]:
-        return self.completions
-
-
-class Presenter:
-    def __init__(self) -> None:
-        self.output: Optional[Response] = None
-
-    def present_completion(self, response: Response) -> None:
-        assert not self.output
-        self.output = response
-
-
-class DependencyInjector:
-    def get_use_case(self) -> GetCompletionsUseCase:
-        return GetCompletionsUseCase(
-            completer=self.get_completer(),
-            presenter=self.get_presenter(),
-        )
-
-    @singleton
-    def get_completer(self) -> Completer:
-        return Completer()
-
-    @singleton
-    def get_presenter(self) -> Presenter:
-        return Presenter()

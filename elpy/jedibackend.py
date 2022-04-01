@@ -30,8 +30,9 @@ class JediBackend:
 
     name = "jedi"
 
-    def __init__(self, project_root, environment_binaries_path) -> None:
-        self.project_root = project_root
+    def __init__(
+        self, project_root: str, environment_binaries_path: Optional[str]
+    ) -> None:
         self.environment = None
         if environment_binaries_path is not None:
             self.environment = jedi.create_environment(

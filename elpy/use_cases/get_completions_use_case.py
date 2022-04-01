@@ -7,7 +7,7 @@ from typing import Iterable, List, Protocol
 @dataclass
 class GetCompletionsUseCase:
     completer: Completer
-    presenter: Presenter
+    presenter: GetCompletionsPresenter
 
     def get_completions(self, request: Request) -> None:
         response = Response(
@@ -63,6 +63,6 @@ class Completer(Protocol):
         ...
 
 
-class Presenter(Protocol):
+class GetCompletionsPresenter(Protocol):
     def present_completion(self, response: Response) -> None:
         ...
