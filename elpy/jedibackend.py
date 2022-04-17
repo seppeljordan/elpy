@@ -16,7 +16,11 @@ from jedi import debug
 
 from elpy import rpc
 from elpy.rpc import Fault
-from elpy.use_cases import get_completions_use_case, refactor_rename_use_case
+from elpy.use_cases import (
+    get_completion_docstring_use_case,
+    get_completions_use_case,
+    refactor_rename_use_case,
+)
 
 
 class JediBackend:
@@ -58,12 +62,15 @@ class JediBackend:
         )
         return output_port.render_completions()
 
-    def rpc_get_completion_docstring(self, completion):
-        proposal = self.completions.get(completion)
-        if proposal is None:
-            return None
-        else:
-            return proposal.docstring(fast=False)
+    def rpc_get_completion_docstring(self, completion: str):
+        output_port = GetCompletionDocstringOutputPort()
+        use_case = get_completion_docstring_use_case.GetCompletionDocstringUseCase(
+            presenter=output_port,
+            completion_repository=self,
+        )
+        request = get_completion_docstring_use_case.Request(name=completion)
+        use_case.get_completion_docstring(request=request)
+        return output_port.render_completion_docstring()
 
     def rpc_get_completion_location(self, completion):
         proposal = self.completions.get(completion)
@@ -464,6 +471,12 @@ class JediBackend:
             for proposal in proposals
         ]
 
+    def get_completion_docstring(self, name: str) -> Optional[str]:
+        completion = self.completions.get(name)
+        if completion is None:
+            return None
+        return completion.docstring(fast=False)
+
 
 # From the Jedi documentation:
 #
@@ -578,6 +591,20 @@ class RefactorRenameOutputPort:
             }
         else:
             raise Exception()
+
+
+class GetCompletionDocstringOutputPort:
+    def __init__(self) -> None:
+        self.response: Optional[get_completion_docstring_use_case.Response] = None
+
+    def present_completion_docstring(
+        self, response: get_completion_docstring_use_case.Response
+    ) -> None:
+        self.response = response
+
+    def render_completion_docstring(self) -> Optional[str]:
+        assert self.response
+        return self.response.docstring
 
 
 class GetCompletionsOutputPort:
