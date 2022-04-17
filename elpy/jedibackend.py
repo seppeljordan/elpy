@@ -332,7 +332,7 @@ class JediBackend:
                 file_name=filename,
             )
         )
-        return output_port.get_response()
+        return output_port.render_response()
 
     def rpc_get_extract_variable_diff(
         self, filename, source, offset, new_name, line_beg, line_end, col_beg, col_end
@@ -575,7 +575,7 @@ class RefactorRenameOutputPort:
     def present_refactoring(self, response: refactor_rename_use_case.Response) -> None:
         self.response = response
 
-    def get_response(self) -> Dict[str, Any]:
+    def render_response(self) -> Dict[str, Any]:
         assert self.response
         changes = self.response.changes
         if changes == refactor_rename_use_case.FailureReason.NOT_AVAILABLE:
