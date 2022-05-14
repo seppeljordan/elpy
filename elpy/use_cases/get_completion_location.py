@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Protocol
 
 from elpy.use_cases.completion_repository import CompletionRepository
 
@@ -17,11 +17,23 @@ class GetCompletionLocationInteractor:
         module_path: Optional[str]
         line: Optional[int]
 
-    completion_repository: CompletionRepository
+    class Presenter(Protocol):
+        def present_completion_location(
+            self, response: GetCompletionLocationInteractor.Response
+        ) -> None:
+            ...
 
-    def get_completion_location(self, request: Request) -> Response:
+    completion_repository: CompletionRepository
+    presenter: Presenter
+
+    def get_completion_location(self, request: Request) -> None:
         if (
             location := self.completion_repository.get_completion_location(request.name)
         ) is not None:
-            return self.Response(module_path=location.module_path, line=location.line)
-        return self.Response(module_path=None, line=None)
+            self.presenter.present_completion_location(
+                self.Response(module_path=location.module_path, line=location.line)
+            )
+        else:
+            self.presenter.present_completion_location(
+                self.Response(module_path=None, line=None)
+            )

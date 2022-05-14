@@ -18,9 +18,11 @@ from elpy import rpc
 from elpy.rpc import Fault
 from elpy.use_cases import (
     get_completion_docstring_use_case,
+    get_completion_location,
     get_completions_use_case,
     refactor_rename_use_case,
 )
+from elpy.use_cases.completion_repository import Location
 
 
 class JediBackend:
@@ -72,12 +74,18 @@ class JediBackend:
         use_case.get_completion_docstring(request=request)
         return output_port.render_completion_docstring()
 
-    def rpc_get_completion_location(self, completion):
-        proposal = self.completions.get(completion)
-        if proposal is None:
-            return None
-        else:
-            return (proposal.module_path, proposal.line)
+    def rpc_get_completion_location(self, completion: str):
+        output_port = GetCompletionLocationOutputPort()
+        use_case = get_completion_location.GetCompletionLocationInteractor(
+            completion_repository=self,
+            presenter=output_port,
+        )
+        use_case.get_completion_location(
+            request=get_completion_location.GetCompletionLocationInteractor.Request(
+                name=completion
+            )
+        )
+        return output_port.render_present_completion_location()
 
     def rpc_get_docstring(self, filename, source, offset):
         line, column = pos_to_linecol(source, offset)
@@ -477,6 +485,13 @@ class JediBackend:
             return None
         return completion.docstring(fast=False)
 
+    def get_completion_location(self, name: str) -> Optional[Location]:
+        proposal = self.completions.get(name)
+        if proposal is None:
+            return None
+        else:
+            return Location(module_path=proposal.module_path, line=proposal.line)
+
 
 # From the Jedi documentation:
 #
@@ -625,3 +640,28 @@ class GetCompletionsOutputPort:
             }
             for proposal in self.response.proposals
         ]
+
+
+class GetCompletionLocationOutputPort:
+    def __init__(self) -> None:
+        self.response: Optional[
+            get_completion_location.GetCompletionLocationInteractor.Response
+        ] = None
+
+    def present_completion_location(
+        self, response: get_completion_location.GetCompletionLocationInteractor.Response
+    ) -> None:
+        assert not self.response
+        self.response = response
+
+    def render_present_completion_location(self) -> Optional[Tuple[str, int]]:
+        assert self.response
+        if self.response.module_path is None:
+            return None
+        path = self.response.module_path
+        if self.response.line is None:
+            return None
+        line = self.response.line
+        return (
+            path, line
+        )
