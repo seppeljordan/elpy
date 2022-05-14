@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import List
+from typing import Optional
 from unittest import TestCase
 
-from elpy.use_cases.completion_repository import Completion
+from elpy.tests.use_cases.completion_repository import Completion
 from elpy.use_cases.get_completion_docstring_use_case import Request, Response
 
 from .dependency_injection import DependencyInjector
@@ -23,15 +23,31 @@ class UseCaseTests(TestCase):
         self.assertIsNone(self.get_response().docstring)
 
     def test_with_a_prior_completion_dont_return_none(self) -> None:
-        self.get_completion(
-            completions=[Completion(name="x", docstring="test docstring")]
-        )
-        self.use_case.get_completion_docstring(self.get_request())
+        self.create_completion(name="x")
+        self.use_case.get_completion_docstring(self.get_request(name="x"))
         self.assertIsNotNone(self.get_response().docstring)
 
-    def get_request(self) -> Request:
+    def create_completion(
+        self, name: Optional[str] = None, docstring: Optional[str] = None
+    ) -> None:
+        if name is None:
+            name = "test_completion"
+        if docstring is None:
+            docstring = "test docstring"
+        self.completion_repository.add_completion(
+            Completion(
+                name=name,
+                docstring=docstring,
+                module_path="",
+                line=0,
+            )
+        )
+
+    def get_request(self, name: Optional[str] = None) -> Request:
+        if name is None:
+            name = "x"
         return Request(
-            name="x",
+            name=name,
         )
 
     def get_response(self) -> Response:
@@ -39,7 +55,3 @@ class UseCaseTests(TestCase):
         self.assertIsNotNone(response)
         assert response
         return response
-
-    def get_completion(self, completions: List[Completion]) -> None:
-        for completion in completions:
-            self.completion_repository.add_completion(completion)
