@@ -662,6 +662,4 @@ class GetCompletionLocationOutputPort:
         if self.response.line is None:
             return None
         line = self.response.line
-        return (
-            path, line
-        )
+        return (path, line)
