@@ -8,9 +8,13 @@
   outputs = { self, nixpkgs, flake-utils }:
     let
       systemDependent = flake-utils.lib.eachDefaultSystem (system:
-        let pkgs = import nixpkgs { inherit system; overlays = [self.overlay];};
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ self.overlays.default ];
+          };
         in {
-          devShell = pkgs.mkShell {
+          devShells.default = pkgs.mkShell {
             buildInputs = (with pkgs.python3.pkgs; [
               autopep8
               black
@@ -31,23 +35,12 @@
               yapf
             ]) ++ (with pkgs; [ cask nixfmt bump2version ]);
           };
-          checks = import ./checks.nix {
-            inherit (pkgs) python3 python38 python39 python310;
-          };
+          checks = import ./checks.nix { inherit (pkgs) python3; };
         });
-      systemIndependent = let
-        overridePython = originalPython: let
-          packageOverrides = import nix/pythonPackages.nix;
-          overriddenPython = originalPython.override {
-            inherit packageOverrides;
-            self = overriddenPython;
-          };
-        in overriddenPython;
-      in {
-        overlay = final: prev: {
-          python38 = overridePython prev.python38;
-          python39 = overridePython prev.python39;
-          python310 = overridePython prev.python310;
+      systemIndependent = {
+        overlays.default = final: prev: {
+          pythonPackagesExtensions = prev.pythonPackagesExtensions
+            ++ [ (import nix/pythonPackages.nix) ];
         };
       };
     in systemDependent // systemIndependent;

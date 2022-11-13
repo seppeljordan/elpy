@@ -118,8 +118,6 @@ class GenericRPCTests(object):
 
         self.rpc(filename, source, offset)
 
-    # @unittest.skipIf((3, 3) <= sys.version_info < (3, 4),
-    #                  "Bug in jedi for Python 3.3")
     def test_should_not_fail_for_relative_import(self):
         source, offset = source_and_offset("from .. import foo_|_")
         filename = self.project_file("test.py", source)
@@ -261,20 +259,6 @@ requests.get(u"https://web.archive.org/save/{}".format(url))
 
         self.rpc(filename, source, offset)
 
-    # For some reason, this breaks a lot of other tests. Couldn't
-    # figure out why.
-    #
-    # def test_should_not_fail_for_sys_path(self):
-    #     # Bug #365 / jedi#486
-    #     source, offset = source_and_offset(
-    #         "import sys\n"
-    #         "\n"
-    #         "sys.path.index(_|_\n"
-    #     )
-    #     filename = self.project_file("project.py", source)
-    #
-    #     self.rpc(filename, source, offset)
-
     def test_should_not_fail_for_key_error(self):
         # Bug #561, #564, #570, #588, #593, #599 / jedi#572, jedi#579,
         # jedi#590
@@ -337,7 +321,7 @@ class RPCGetCompletionsTests(GenericRPCTests):
         source, offset = source_and_offset("import multi_|_")
         filename = self.project_file("test.py", source)
         completions = self.backend.rpc_get_completions(filename, source, offset)
-        expected = ["dict", "processing"]
+        expected = ["processing"]
         self.assertEqual(
             sorted([cand["suffix"] for cand in completions]), sorted(expected)
         )
@@ -708,11 +692,9 @@ class RPCGetOnelineDocstringTests(GenericRPCTests):
     METHOD = "rpc_get_oneline_docstring"
 
     def check_docstring(self, docstring):
-
         self.assertEqual(docstring["doc"], self.JSON_LOADS_DOCSTRING)
 
     def check_module_docstring(self, docstring):
-
         self.assertEqual(docstring["doc"], self.JSON_DOCSTRING)
 
     def test_should_get_oneline_docstring(self):

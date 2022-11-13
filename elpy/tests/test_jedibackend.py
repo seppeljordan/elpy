@@ -1,7 +1,6 @@
 """Tests for the elpy.jedibackend module."""
 
 import re
-import sys
 import unittest
 from typing import Any, Dict
 from unittest import mock
@@ -85,37 +84,16 @@ class TestRPCGetDocstring(RPCGetDocstringTests, JediBackendTestCase):
 class TestRPCGetOnelineDocstring(RPCGetOnelineDocstringTests, JediBackendTestCase):
     def __init__(self, *args, **kwargs):
         super(TestRPCGetOnelineDocstring, self).__init__(*args, **kwargs)
-        if sys.version_info >= (3, 6):
-            self.JSON_LOADS_DOCSTRING = (
-                "Deserialize ``s`` (a ``str``, ``bytes`` or"
-                " ``bytearray`` instance containing a JSON"
-                " document) to a Python object."
-            )
-            self.JSON_DOCSTRING = (
-                "JSON (JavaScript Object Notation) <http://json.org>"
-                " is a subset of JavaScript syntax (ECMA-262"
-                " 3rd edition) used as a lightweight data interchange format."
-            )
-        elif sys.version_info >= (3, 0):
-            self.JSON_LOADS_DOCSTRING = (
-                "Deserialize ``s`` (a ``str`` instance "
-                "containing a JSON document) to a Python object."
-            )
-            self.JSON_DOCSTRING = (
-                "JSON (JavaScript Object Notation) <http://json.org>"
-                " is a subset of JavaScript syntax (ECMA-262"
-                " 3rd edition) used as a lightweight data interchange format."
-            )
-        else:
-            self.JSON_LOADS_DOCSTRING = (
-                "Deserialize ``s`` (a ``str`` or ``unicode`` "
-                "instance containing a JSON document) to a Python object."
-            )
-            self.JSON_DOCSTRING = (
-                "JSON (JavaScript Object Notation) <http://json.org>"
-                " is a subset of JavaScript syntax (ECMA-262"
-                " 3rd edition) used as a lightweight data interchange format."
-            )
+        self.JSON_LOADS_DOCSTRING = (
+            "Deserialize ``s`` (a ``str``, ``bytes`` or"
+            " ``bytearray`` instance containing a JSON"
+            " document) to a Python object."
+        )
+        self.JSON_DOCSTRING = (
+            "JSON (JavaScript Object Notation) <https://json.org>"
+            " is a subset of JavaScript syntax (ECMA-262"
+            " 3rd edition) used as a lightweight data interchange format."
+        )
 
     @mock.patch("elpy.jedibackend.run_with_debug")
     def test_should_not_return_empty_docstring(self, run_with_debug):
