@@ -1,21 +1,3 @@
-
-.. image:: https://github.com/jorgenschaefer/elpy/workflows/Tests/badge.svg?branch=master
-   :target: https://github.com/jorgenschaefer/elpy/actions?query=workflow%3ATests
-
-.. image:: https://readthedocs.org/projects/elpy/badge/?version=latest
-   :target: https://elpy.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
-
-.. image:: https://coveralls.io/repos/jorgenschaefer/elpy/badge.svg?branch=master
-   :target: https://coveralls.io/r/jorgenschaefer/elpy?branch=master
-
-.. image:: https://melpa.org/packages/elpy-badge.svg
-   :target: https://melpa.org/#/elpy
-
-.. image:: https://stable.melpa.org/packages/elpy-badge.svg
-   :target: https://stable.melpa.org/#/elpy
-
-
 ==========================
 Elpy, the Emacs Python IDE
 ==========================
