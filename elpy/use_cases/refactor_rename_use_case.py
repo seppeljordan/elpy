@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Protocol, Union
+from typing import List, Protocol, Union
+
+from elpy.use_cases.interface import Refactorer
 
 
 @dataclass
@@ -38,6 +40,11 @@ class RefactorRenameUseCase:
         )
 
 
+class RefactorRenamePresenter(Protocol):
+    def present_refactoring(self, response: Response) -> None:
+        ...
+
+
 @dataclass
 class Request:
     source: str
@@ -49,38 +56,6 @@ class Request:
 @dataclass
 class Response:
     changes: Union[Changes, FailureReason]
-
-
-class RefactorRenamePresenter(Protocol):
-    def present_refactoring(self, response: Response) -> None:
-        ...
-
-
-class Refactorer(Protocol):
-    def rename_identifier(
-        self,
-        source: str,
-        offset: int,
-        file_name: str,
-        new_identifier_name: str,
-    ) -> Optional[Refactoring]:
-        ...
-
-    def can_do_renaming(self) -> bool:
-        ...
-
-
-@dataclass
-class Coordinates:
-    line: int
-    column: int
-
-
-@dataclass
-class Refactoring:
-    changed_files: Iterable[str]
-    diff: str
-    project_path: str
 
 
 class FailureReason(enum.Enum):

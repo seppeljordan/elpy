@@ -1,12 +1,8 @@
 from typing import Callable
 from unittest import TestCase
 
-from elpy.use_cases.refactor_rename_use_case import (
-    Changes,
-    FailureReason,
-    Refactoring,
-    Request,
-)
+from elpy.use_cases.interface import Refactoring
+from elpy.use_cases.refactor_rename_use_case import Changes, FailureReason, Request
 
 from .dependency_injection import DependencyInjector
 

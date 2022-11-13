@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, Protocol
 
-from elpy.use_cases.completion_repository import CompletionRepository
+from elpy.use_cases.interface import CompletionRepository
 
 
 @dataclass

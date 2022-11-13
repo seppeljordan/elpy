@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-from elpy.use_cases.completion_repository import Location
+from elpy.use_cases.interface import Location
 
 
 @dataclass

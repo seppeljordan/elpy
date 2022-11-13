@@ -22,7 +22,7 @@ from elpy.use_cases import (
     get_completions_use_case,
     refactor_rename_use_case,
 )
-from elpy.use_cases.completion_repository import Location
+from elpy.use_cases.interface import Location, Refactoring
 
 
 class JediBackend:
@@ -31,7 +31,6 @@ class JediBackend:
     Implements the RPC calls we can pass on to Jedi.
 
     Documentation: http://jedi.jedidjah.ch/en/latest/docs/plugin-api.html
-
     """
 
     name = "jedi"
@@ -431,7 +430,7 @@ class JediBackend:
         offset: int,
         file_name: str,
         new_identifier_name: str,
-    ) -> Optional[refactor_rename_use_case.Refactoring]:
+    ) -> Optional[Refactoring]:
         line, column = pos_to_linecol(source, offset)
         ren = run_with_debug(
             jedi,
@@ -447,7 +446,7 @@ class JediBackend:
         )
         if ren is None:
             return None
-        return refactor_rename_use_case.Refactoring(
+        return Refactoring(
             changed_files=ren.get_changed_files().keys(),
             diff=ren.get_diff(),
             project_path=ren._inference_state.project._path,

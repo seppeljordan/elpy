@@ -1,6 +1,6 @@
 from typing import Optional
 
-from elpy.use_cases.refactor_rename_use_case import Refactoring
+from elpy.use_cases.interface import Refactoring
 
 
 class TestingRefactorer:
